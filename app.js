@@ -1,131 +1,101 @@
-const express = require('express');
-const app = express();
-const mongoose = require('mongoose');
-const cookieParser = require('cookie-parser');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const path = require('path');
+// server.js
+const express = require("express");
+const server = express();
+const mongoose = require("mongoose");
 
+// EJS view engine set કરો
+server.set("view engine", "ejs");
 
-const userModel = require('./model/user');
+// Body parsing middleware (POST form માટે)
+server.use(express.urlencoded({ extended: true }));
+server.use(express.json());
 
-// Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/contact')
-  .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.error(err));
+// MongoDB connect
+mongoose
+  .connect("mongodb://localhost:27017/mongooseCrud")
+  .then(() => console.log(" MongoDB connection success"))
+  .catch((err) => console.log(" DB Error:", err));
 
-// Middleware
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+// Model import
+const USER = require("./model/user");
 
-// Routes
-app.get('/', (req, res) => {
-  res.render('index');
-});
-
-app.get('/login', (req, res) => {
-  res.render('login');
-});
-
-// Register Route
-app.post('/register', async (req, res) => {
+//  HOME + SEARCH
+server.get("/", async (req, res) => {
   try {
-    const { name, email, username, password, age } = req.body;
+    const search = req.query.search || "";
 
-    const existingUser = await userModel.findOne({ email });
-    if (existingUser) return res.status(400).send('User already registered');
+    const filter = search
+  ? {
+      $or: [
+        { name: { $regex: search, $options: "i" } },
+        { username: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
 
-    const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash(password, salt);
+        // Convert number to string before regex
+        { phone: { $regex: new RegExp(search, "i") } }
 
-    const user = await userModel.create({
-      name,
-      username,
-      email,
-      age,
-      password: hash,
-    });
+      ],
+    }
+  : {};
 
-    const token = jwt.sign({ email: user.email, userId: user._id }, 'shhhhh', { expiresIn: '1d' });
-    res.cookie('token', token, { httpOnly: true });
 
-    res.status(201).send('Registered successfully');
+    const allData = await USER.find(filter).lean();
+
+  res.render("crud", { allData, searchValus : search });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Server error');
+    console.log(err);
+    res.send("Error loading data");
   }
 });
 
-// Login Route (fixed)
-app.post('/login', async (req, res) => {
+// ADD + UPDATE (same route)
+// form method="POST" action="/crudData"
+server.post("/crudData", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { id, name, username, phone, email } = req.body;
 
-    const user = await userModel.findOne({ email });
-    if (!user) return res.status(404).send('User not found');
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).send('Invalid credentials');
-
-    const token = jwt.sign({ email: user.email, userId: user._id }, 'shhhhh', { expiresIn: '1d' });
-    res.cookie('token', token, { httpOnly: true });
-
-    res.send('Login successful');
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Server error');
-  }
-});
-
-
-
-app.post('/user/update/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { name, username, email, age, password } = req.body;
-
-    const updateData = { name, username, email, age };
-
-    if (password) {
-      const salt = await bcrypt.genSalt(10);
-      updateData.password = await bcrypt.hash(password, salt);
+    if (id && id.trim() !== "") {
+      // UPDATE
+      await USER.findByIdAndUpdate(id, {
+        name,
+        username,
+        phone,
+        email,
+      });
+    } else {
+      // CREATE
+      await USER.create({
+        name,
+        username,
+        phone,
+        email,
+      });
     }
 
-    const updatedUser = await userModel.findByIdAndUpdate(
-      id,
-      updateData,
-      { new: true }
-    );
-
-    if (!updatedUser) return res.status(404).send('User not found');
-
-    res.send('User updated successfully');
+    res.redirect("/");
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Server error');
+    console.log(err);
+    res.send("Error saving data");
   }
 });
 
 
 
-// app.post('/user/delete/:id', async (req, res) => {
-//   try {
-//     const { id } = req.params;
 
-//     const deletedUser = await userModel.findByIdAndDelete(id);
+//  DELETE
+server.get("/deleteData/:id", async (req, res) => {
+  try {
+    await USER.findByIdAndDelete(req.params.id);
+    res.redirect("/");
+  } catch (err) {
+    console.log(err);
+    res.send("Error deleting data");
+  }
+});
 
-//     if (!deletedUser) return res.status(404).send('User not found');
-
-//     res.send('User deleted successfully');
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).send('Server error');
-//   }
-// });
-
-
-// Start server
-app.listen(3000, () => console.log('Server running on http://localhost:3000'));
+//  SERVER START
+const PORT = 4000;
+server.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+});
