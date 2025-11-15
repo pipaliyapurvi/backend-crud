@@ -12,7 +12,115 @@
 
 <body class="p-6 flex flex-col items-center">
 
-<h1 class="text-4xl font-bold mb-6 text-center">Contact Book</h1>
+<!-- HEADER -->
+<header class="w-full bg-white shadow-sm py-3 px-6 flex items-center justify-between">
+
+  <!-- LEFT: Logo + Menu -->
+  <div class="flex items-center gap-10">
+
+    <!-- Logo -->
+    <div class="flex items-center gap-2">
+      <i class="fa-solid fa-address-book text-blue-600 text-3xl"></i>
+      <span class="text-xl font-bold">Contact Book</span>
+    </div>
+
+    <!-- Menu -->
+    <nav class="hidden sm:flex items-center gap-8 text-gray-700 font-medium">
+
+      <a href="/" class="hover:text-blue-600 transition relative group">
+        Dashboard
+      </a>
+
+      <a href="/contacts" class="hover:text-blue-600 transition relative group">
+        Contacts
+        <!-- Active underline -->
+        <span class="absolute left-0 -bottom-1 w-full h-[2px] bg-blue-600 scale-100"></span>
+      </a>
+
+      <a class="hover:text-blue-600 transition relative group cursor-pointer">
+        Departments
+      </a>
+
+      <a class="hover:text-blue-600 transition relative group cursor-pointer">
+        Reports
+      </a>
+
+      <a class="hover:text-blue-600 transition relative group cursor-pointer">
+        Help
+      </a>
+
+    </nav>
+
+  </div>
+
+  <!-- RIGHT: User -->
+  <div class="flex items-center gap-3">
+
+    <!-- Circle Initials -->
+    <div class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">
+      CB
+    </div>
+
+    <!-- Name + Role -->
+    <div class="text-right">
+      <p class="text-sm font-semibold">Admin</p>
+      <p class="text-xs text-gray-500">Super Admin</p>
+    </div>
+
+  </div>
+
+</header>
+
+
+
+
+<h1 class="text-4xl font-bold mb-6 mt-10 text-center">Contact Book</h1>
+
+<div class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 mt-4">
+<!-- Total Contacts -->
+<div class="border rounded-xl p-4 bg-white shadow-sm flex items-center justify-between">
+  <div>
+    <p class="text-sm text-gray-500">Total Contact</p>
+
+    <!-- Dynamic Count -->
+    <p class="text-3xl font-semibold"><%= allData.length %></p>
+  </div>
+
+  <i class="fa-solid fa-user-group text-3xl text-gray-500"></i>
+</div>
+
+
+  <!-- Active -->
+  <div class="border rounded-xl p-4 bg-white shadow-sm flex items-center justify-between">
+    <div>
+      <p class="text-sm text-gray-500">Active</p>
+      <p class="text-3xl font-semibold text-green-600"><%= allData.length %></p>
+      <span class="text-green-600 text-xs font-semibold ">Active</span>
+    </div>
+  </div>
+
+  <!-- Departments -->
+  <div class="border rounded-xl p-4 bg-white shadow-sm flex items-center justify-between">
+    <div>
+      <p class="text-sm text-gray-500">Departments</p>
+      <p class="text-3xl font-semibold">0</p>
+    </div>
+    <i class="fa-solid fa-building text-3xl text-gray-500"></i>
+  </div>
+
+  <!-- Managers -->
+  <div class="border rounded-xl p-4 bg-white shadow-sm flex items-center justify-between">
+    <div>
+      <p class="text-sm text-gray-500">Managers</p>
+      <p class="text-3xl font-semibold text-blue-600">0</p>
+      <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded-md text-xs">Manager</span>
+    </div>
+  </div>
+
+</div>
+
+
+
 
 <div class="w-full bg-white shadow-lg rounded-xl p-5 border border-gray-200">
   <form method="get" action="/" class="flex gap-2 w-full">
@@ -51,7 +159,7 @@
     <p>Username</p>
     <p>Phone</p>
     <p>Email</p>
-    <p class="text-center col-span-2">Action</p>
+    <p class="text-center col-span-2">Actions</p>
   </div>
 
   <% allData.forEach(item => { %>
@@ -93,6 +201,11 @@
     </div>
   <% } %>
 </div>
+
+
+
+
+
 
 <!-- Popup -->
 <div id="popupWrapper"
